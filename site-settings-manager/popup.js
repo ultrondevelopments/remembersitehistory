@@ -25,10 +25,22 @@ function queryActiveTab() {
   });
 }
 
+function resolveContentSettingsKey(type) {
+  // Some Chromium variants may not expose certain keys. Provide a best-effort mapping and detection.
+  if (chrome?.contentSettings?.[type]) return type;
+  // Fallback aliases seen in some browsers (rare). Keep conservative.
+  const aliases = { geolocation: "location" };
+  const alias = aliases[type];
+  if (alias && chrome?.contentSettings?.[alias]) return alias;
+  return null;
+}
+
 function getContentSetting(type, primaryUrl) {
   return new Promise((resolve) => {
     try {
-      chrome.contentSettings[type].get({ primaryUrl }, (details) => {
+      const key = resolveContentSettingsKey(type);
+      if (!key) return resolve({ error: `Unsupported content type: ${type}` });
+      chrome.contentSettings[key].get({ primaryUrl }, (details) => {
         if (chrome.runtime.lastError) {
           resolve({ error: chrome.runtime.lastError.message });
         } else {
@@ -44,7 +56,9 @@ function getContentSetting(type, primaryUrl) {
 function setContentSetting(type, primaryPattern, setting) {
   return new Promise((resolve) => {
     try {
-      chrome.contentSettings[type].set({ primaryPattern, setting, scope: "regular" }, () => {
+      const key = resolveContentSettingsKey(type);
+      if (!key) return resolve({ error: `Unsupported content type: ${type}` });
+      chrome.contentSettings[key].set({ primaryPattern, setting, scope: "regular" }, () => {
         if (chrome.runtime.lastError) {
           resolve({ error: chrome.runtime.lastError.message });
         } else {
@@ -84,6 +98,16 @@ async function init() {
   }
   originEl.textContent = origin;
 
+  // Disable unsupported selectors upfront
+  for (const type of SUPPORTED_CONTENT_TYPES) {
+    const select = document.getElementById(type);
+    const key = resolveContentSettingsKey(type);
+    if (select && !key) {
+      select.disabled = true;
+      select.title = `${type} not supported in this browser`;
+    }
+  }
+
   // Load current effective settings from Chrome
   for (const type of SUPPORTED_CONTENT_TYPES) {
     const details = await getContentSetting(type, tab.url);
@@ -99,6 +123,7 @@ async function init() {
   // Save & Apply
   document.getElementById("saveApply").addEventListener("click", async () => {
     statusEl.textContent = "";
+    statusEl.classList.remove("error");
 
     // Build payload of selected settings
     const payload = {};
@@ -134,6 +159,7 @@ async function init() {
   // Forget saved settings for this origin (does not change Chrome settings, just forgets our stored rules)
   document.getElementById("forget").addEventListener("click", async () => {
     statusEl.textContent = "";
+    statusEl.classList.remove("error");
     const stored = await getFromSyncStorage([STORAGE_KEY]);
     const settingsByOrigin = stored[STORAGE_KEY] || {};
     if (settingsByOrigin[origin]) {
@@ -141,7 +167,6 @@ async function init() {
       await setInSyncStorage({ [STORAGE_KEY]: settingsByOrigin });
     }
     statusEl.textContent = "Forgot saved rules for this site.";
-    statusEl.classList.remove("error");
   });
 }
 

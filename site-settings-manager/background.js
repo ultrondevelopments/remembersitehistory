@@ -43,10 +43,20 @@ async function removeFromSyncStorage(key) {
   });
 }
 
+function resolveContentSettingsKey(type) {
+  if (chrome?.contentSettings?.[type]) return type;
+  const aliases = { geolocation: "location" };
+  const alias = aliases[type];
+  if (alias && chrome?.contentSettings?.[alias]) return alias;
+  return null;
+}
+
 function getContentSetting(type, primaryUrl) {
   return new Promise((resolve) => {
     try {
-      chrome.contentSettings[type].get(
+      const key = resolveContentSettingsKey(type);
+      if (!key) return resolve({ error: `Unsupported content type: ${type}` });
+      chrome.contentSettings[key].get(
         { primaryUrl },
         (details) => {
           if (chrome.runtime.lastError) {
@@ -65,7 +75,9 @@ function getContentSetting(type, primaryUrl) {
 function setContentSetting(type, primaryPattern, setting) {
   return new Promise((resolve) => {
     try {
-      chrome.contentSettings[type].set(
+      const key = resolveContentSettingsKey(type);
+      if (!key) return resolve({ error: `Unsupported content type: ${type}` });
+      chrome.contentSettings[key].set(
         { primaryPattern, setting, scope: "regular" },
         () => {
           if (chrome.runtime.lastError) {
@@ -81,15 +93,14 @@ function setContentSetting(type, primaryPattern, setting) {
   });
 }
 
-function clearContentSetting(type, primaryPattern) {
+function clearContentSetting(type) {
   return new Promise((resolve) => {
     try {
-      chrome.contentSettings[type].clear(
+      const key = resolveContentSettingsKey(type);
+      if (!key) return resolve({ error: `Unsupported content type: ${type}` });
+      chrome.contentSettings[key].clear(
         { scope: "regular" },
         () => {
-          // Note: clear() removes all rules for this content type across all patterns in this scope.
-          // There is no per-pattern clear() in this API. We therefore avoid calling clear() casually.
-          // Instead, we only use set() to override to allow/block. We won't call clear() automatically.
           if (chrome.runtime.lastError) {
             resolve({ error: chrome.runtime.lastError.message });
           } else {
@@ -115,7 +126,6 @@ async function applySavedSettingsForOrigin(origin) {
     if (!desired) continue;
     if (desired === "clear") {
       // Avoid global clear; skip to prevent wiping all user rules.
-      // Users can manage clearing via the popup for now (we won't implement global clear here).
       continue;
     }
     await setContentSetting(type, pattern, desired);
@@ -133,7 +143,6 @@ async function captureCurrentOverridesForOrigin(origin, url) {
     const details = await getContentSetting(type, url);
     if (details && !details.error) {
       const setting = details.setting;
-      // Persist only explicit allow/block overrides
       if (setting === "allow" || setting === "block") {
         if (existing[type] !== setting) {
           existing[type] = setting;
@@ -153,10 +162,7 @@ async function handleTabUrl(url) {
   const origin = getOriginFromUrl(url);
   if (!origin) return;
 
-  // Apply any saved settings for this origin
   await applySavedSettingsForOrigin(origin);
-
-  // Opportunistically capture current overrides for this origin
   await captureCurrentOverridesForOrigin(origin, url);
 }
 
@@ -180,7 +186,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 });
 
 chrome.runtime.onInstalled.addListener(async () => {
-  // Optionally apply saved settings for all known origins at install/update
   const stored = await getFromSyncStorage([STORAGE_KEY]);
   const settingsByOrigin = stored[STORAGE_KEY] || {};
   const origins = Object.keys(settingsByOrigin);
