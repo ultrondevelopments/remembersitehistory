@@ -17,5 +17,7 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "homepage_url": "https://ultrondevelopments.com.au/",
+  "author": "Ultron Developments"
 }

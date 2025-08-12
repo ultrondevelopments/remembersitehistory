@@ -28,3 +28,11 @@ Remembers and reapplies site permissions (camera, microphone, geolocation, notif
 - There is no API to list all site settings across all sites. The extension captures rules as you visit sites and as you Save them in the popup.
 - Incognito windows are not handled specially. You can add handling using `scope: "incognito_session_only"` if desired.
 - The available `setting` values vary per content type. This extension uses `allow`/`block`, which are supported for the targeted types.
+
+## Attribution
+
+Built with love by [Ultron Developments](https://ultrondevelopments.com.au/).
+
+## Report issues
+
+Use the "Report issue" button in the popup or email `ultrondevelopments@gmail.com` with details about the site, steps to reproduce, and any screenshots.

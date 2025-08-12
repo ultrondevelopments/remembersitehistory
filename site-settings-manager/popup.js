@@ -168,6 +168,34 @@ async function init() {
     }
     statusEl.textContent = "Forgot saved rules for this site.";
   });
+
+  // Report issue via email
+  const reportIssueButton = document.getElementById("reportIssue");
+  if (reportIssueButton) {
+    reportIssueButton.addEventListener("click", () => {
+      const manifest = (chrome?.runtime?.getManifest && chrome.runtime.getManifest()) || {};
+      const version = manifest.version || "unknown";
+
+      const subject = encodeURIComponent("Site Settings Manager: Issue report");
+      const selections = SUPPORTED_CONTENT_TYPES.map((type) => {
+        const select = document.getElementById(type);
+        const value = select ? (select.value || "no change") : "n/a";
+        return `- ${type}: ${value}`;
+      }).join("\n");
+
+      const body = encodeURIComponent([
+        "Describe the issue here:",
+        "",
+        `Origin: ${origin}`,
+        `Extension version: ${version}`,
+        "",
+        "Current selections:",
+        selections,
+      ].join("\n"));
+
+      window.open(`mailto:ultrondevelopments@gmail.com?subject=${subject}&body=${body}`);
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);
