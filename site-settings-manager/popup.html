@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Site Settings Manager</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 12px; width: 320px; }
+      h1 { font-size: 16px; margin: 0 0 8px; }
+      .origin { font-size: 12px; color: #555; margin-bottom: 12px; word-break: break-all; }
+      .row { display: flex; align-items: center; justify-content: space-between; margin: 6px 0; }
+      label { font-size: 13px; }
+      select { font-size: 13px; }
+      .buttons { display: flex; gap: 8px; margin-top: 12px; }
+      .status { margin-top: 8px; font-size: 12px; color: #0a0; }
+      .error { color: #a00; }
+    </style>
+  </head>
+  <body>
+    <h1>Site Settings</h1>
+    <div id="origin" class="origin"></div>
+
+    <div class="row">
+      <label for="camera">Camera</label>
+      <select id="camera">
+        <option value="">No change</option>
+        <option value="allow">Allow</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="microphone">Microphone</label>
+      <select id="microphone">
+        <option value="">No change</option>
+        <option value="allow">Allow</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="geolocation">Location</label>
+      <select id="geolocation">
+        <option value="">No change</option>
+        <option value="allow">Allow</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label for="notifications">Notifications</label>
+      <select id="notifications">
+        <option value="">No change</option>
+        <option value="allow">Allow</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    <div class="buttons">
+      <button id="saveApply">Save & Apply</button>
+      <button id="forget">Forget</button>
+    </div>
+
+    <div id="status" class="status"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
