@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Site Settings Manager",
+  "version": "0.1.0",
+  "description": "Remember and reapply site permissions (camera, microphone, geolocation, notifications) per site.",
+  "permissions": [
+    "contentSettings",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_title": "Site Settings Manager",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
