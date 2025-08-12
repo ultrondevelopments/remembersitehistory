@@ -108,6 +108,15 @@
         color: var(--success);
       }
       .status.error { color: var(--error); }
+      .footer {
+        margin-top: 12px;
+        font-size: 11px;
+        color: var(--muted);
+        text-align: center;
+        border-top: 1px dashed var(--border);
+        padding-top: 8px;
+      }
+      .footer a { color: inherit; text-decoration: underline; }
     </style>
   </head>
   <body>
@@ -158,6 +167,7 @@
     </div>
 
     <div id="status" class="status"></div>
+    <div class="footer">Built with love by <a href="https://ultrondevelopments.com.au/" target="_blank" rel="noopener noreferrer">Ultron Developments</a></div>
     <script src="popup.js"></script>
   </body>
 </html>
